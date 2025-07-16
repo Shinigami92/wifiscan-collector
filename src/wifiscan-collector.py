@@ -25,6 +25,9 @@ class WifiScan:
 
         # Set scan interval from environment variable
         self.scan_interval = int(os.getenv("WIFISCAN_COLLECTOR_SCAN_INTERVAL", 5))
+        
+        # Set wireless interface from environment variable
+        self.wireless_interface = os.getenv("WIFISCAN_COLLECTOR_WIRELESS_INTERFACE", "wlan0")
 
     def parse_iw_output(self, output):
         """Parse the output from the 'iw' scan command."""
@@ -144,16 +147,15 @@ class WifiScan:
 
             # Run the iw command and capture the output
             result = subprocess.run(
-                ["iw", "dev", "wlan0", "scan"],
+                ["iw", "dev", self.wireless_interface, "scan"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                check=True,
+                timeout=30,
+                encoding="utf-8"
             )
 
-            if result.returncode != 0:
-                logging.error(f"iw scan failed: {result.stderr.decode('utf-8')}")
-                return None, 0
-
-            output = result.stdout.decode("utf-8")
+            output = result.stdout
 
             # Measure how long the scan took
             elapsed_time = time.time() - start_time
@@ -162,6 +164,12 @@ class WifiScan:
             # Parse the iw output
             return self.parse_iw_output(output), elapsed_time
 
+        except subprocess.CalledProcessError as e:
+            logging.error(f"iw scan failed with return code {e.returncode}: {e.stderr}")
+            return None, 0
+        except subprocess.TimeoutExpired:
+            logging.error("iw scan timed out after 30 seconds")
+            return None, 0
         except Exception as e:
             logging.error(f"Error running iw scan: {e}")
             return None, 0
