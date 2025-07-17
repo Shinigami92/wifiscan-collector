@@ -19,6 +19,7 @@ You can configure the collector using the following environment variables:
 - **`WIFISCAN_COLLECTOR_INFLUXDB_BUCKET`**: InfluxDB bucket name to store Wi-Fi scan results.
 - **`WIFISCAN_COLLECTOR_SCAN_INTERVAL`**: Interval (in seconds) between Wi-Fi scans.
 - **`WIFISCAN_COLLECTOR_LOG_LEVEL`**: Logging level (e.g., `DEBUG`, `INFO`, `ERROR`).
+- **`WIFISCAN_COLLECTOR_WIRELESS_INTERFACE`**: Wireless network interface name (e.g., `wlan0`, `wlp3s0`). Defaults to `wlan0`.
 
 ## Requirements
 
@@ -48,6 +49,7 @@ services:
       WIFISCAN_COLLECTOR_MAX_RETRIES: "3"
       WIFISCAN_COLLECTOR_RETRY_DELAY: "2"
       WIFISCAN_COLLECTOR_SCAN_INTERVAL: "10"
+      WIFISCAN_COLLECTOR_WIRELESS_INTERFACE: wlan0  # Change to your wireless interface
     image: lux4rd0/wifiscan-collector:latest
     network_mode: host
     restart: unless-stopped
@@ -68,16 +70,18 @@ This command will start the WiFiScan Collector service in the background. It wil
 
 ### Step 3: Troubleshooting
 
-If you encounter issues such as the `wlan0` interface being down, you can troubleshoot with the following commands:
+If you encounter issues such as your wireless interface being down, you can troubleshoot with the following commands:
 
 1. **Check the status of your wireless interface:**
 
    ```bash
-   ifconfig wlan0 up
+   ifconfig <interface_name> up
    ```
 
 2. **Bring up the interface manually:**
 
    ```bash
-   sudo ip link set wlan0 up
+   sudo ip link set <interface_name> up
    ```
+
+Replace `<interface_name>` with your actual wireless interface name (e.g., `wlan0`, `wlp3s0`, etc.). You can find your interface name using `ip link show` or `iwconfig`.
